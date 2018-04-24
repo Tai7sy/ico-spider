@@ -18,17 +18,26 @@ function downloadCode (name, address) {
   request.get(`https://etherscan.io/address/${address}#code`).then(e => {
     task[1]++;
     const html = e.data;
-    const code = /<pre class='js-sourcecopyarea' id='editor' .+>([\s\S]+?)<\/pre><br><s /.exec(html);
+    let code = /<pre class='js-sourcecopyarea' id='editor' .+>([\s\S]+?)<\/pre><br><s/.exec(html);
     if (code) {
-      fs.writeFileSync("result\\" + name + ".sol", code[1]);
-      console.log(`[${task[1]}/${task[0]}] download ${name} ${address} successfully!`);
+      code = code[1]
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&#39;/g, '\'')
+        .replace(/&copy;/g, '©');
+
+      fs.writeFileSync("result\\" + name + ".sol", code);
+      console.log(`[${task[1]}/${task[0]}] download ${address} ${name} successfully!`);
     } else {
-      console.log(`[${task[1]}/${task[0]}] download ${name} ${address} no code!`);
+      console.error(`[${task[1]}/${task[0]}] download ${address} ${name} no code!`);
     }
     ing--;
   }).catch(e => {
     task[1]++;
-    console.error(`[${task[1]}/${task[0]}] download ${name} ${address} error with`);
+    console.error(`[${task[1]}/${task[0]}] download ${address} ${name} error with`);
     console.error(e.toString());
     ing--;
   });

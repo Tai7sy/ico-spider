@@ -1,4 +1,4 @@
-pragma solidity &gt;=0.4.4;
+pragma solidity >=0.4.4;
 
 // Copyright 2017 Alchemy Limited LLC, Do not distribute
 
@@ -37,13 +37,13 @@ contract SafeMath {
     }
 
     function safeSub(uint a, uint b) internal returns (uint) {
-        assert(b &lt;= a);
+        assert(b <= a);
         return a - b;
     }
 
     function safeAdd(uint a, uint b) internal returns (uint) {
         uint c = a + b;
-        assert(c&gt;=a &amp;&amp; c&gt;=b);
+        assert(c>=a && c>=b);
         return c;
     }
 
@@ -90,9 +90,9 @@ contract Token is SafeMath, Owned, Constants {
 
     function Token() {
         owner = msg.sender;
-        name = &quot;Monolith TKN&quot;;
+        name = "Monolith TKN";
         decimals = uint8(DECIMALS);
-        symbol = &quot;TKN&quot;;
+        symbol = "TKN";
     }
 
     function Launch() onlyOwner {
@@ -125,7 +125,7 @@ contract Token is SafeMath, Owned, Constants {
     }
 
     function claimOwnerSupply() onlyOwner {
-        if (now &lt; ownerTokensFreeDay) throw;
+        if (now < ownerTokensFreeDay) throw;
         if (remainingOwner == 0) throw;
         if (!remaindersSet) throw; // must finalize remainders
 
@@ -134,7 +134,7 @@ contract Token is SafeMath, Owned, Constants {
     }
 
     function claimAuctionableTokens(uint amount) onlyController {
-        if (amount &gt; remainingAuctionable) throw;
+        if (amount > remainingAuctionable) throw;
 
         balanceOf[controller] = safeAdd(balanceOf[controller], amount);
         currentSupply = safeAdd(currentSupply, amount);
@@ -159,15 +159,15 @@ contract Token is SafeMath, Owned, Constants {
 
     uint constant D160 = 0x0010000000000000000000000000000000000000000;
 
-    // We don&#39;t use safe math in this function
+    // We don't use safe math in this function
     // because this will be called for the owner before the contract
     // is published and we need to save gas.
     function multiMint(uint[] data) onlyOwner {
         if (mintingDone) throw;
 
         uint supplyAdd;
-        for (uint i = 0; i &lt; data.length; i++ ) {
-            address addr = address( data[i] &amp; (D160-1) );
+        for (uint i = 0; i < data.length; i++ ) {
+            address addr = address( data[i] & (D160-1) );
             uint amount = data[i] / D160;
 
             balanceOf[addr] += amount;
@@ -181,13 +181,13 @@ contract Token is SafeMath, Owned, Constants {
         mintingDone = true;
     }
 
-    mapping(address =&gt; uint) public balanceOf;
-    mapping(address =&gt; mapping (address =&gt; uint)) public allowance;
+    mapping(address => uint) public balanceOf;
+    mapping(address => mapping (address => uint)) public allowance;
 
     function transfer(address _to, uint _value) isLaunched notPaused
     onlyPayloadSize(2)
     returns (bool success) {
-        if (balanceOf[msg.sender] &lt; _value) return false;
+        if (balanceOf[msg.sender] < _value) return false;
         if (_to == 0x0) return false;
 
         balanceOf[msg.sender] = safeSub(balanceOf[msg.sender], _value);
@@ -200,10 +200,10 @@ contract Token is SafeMath, Owned, Constants {
     onlyPayloadSize(3)
     returns (bool success) {
         if (_to == 0x0) return false;
-        if (balanceOf[_from] &lt; _value) return false;
+        if (balanceOf[_from] < _value) return false;
 
         var allowed = allowance[_from][msg.sender];
-        if (allowed &lt; _value) return false;
+        if (allowed < _value) return false;
 
         balanceOf[_to] = safeAdd(balanceOf[_to], _value);
         balanceOf[_from] = safeSub(balanceOf[_from], _value);
@@ -216,7 +216,7 @@ contract Token is SafeMath, Owned, Constants {
     onlyPayloadSize(2)
     returns (bool success) {
         //require user to set to zero before resetting to nonzero
-        if ((_value != 0) &amp;&amp; (allowance[msg.sender][_spender] != 0)) {
+        if ((_value != 0) && (allowance[msg.sender][_spender] != 0)) {
             return false;
         }
 
@@ -238,7 +238,7 @@ contract Token is SafeMath, Owned, Constants {
     onlyPayloadSize(2)
     returns (bool success) {
         uint oldValue = allowance[msg.sender][_spender];
-        if (_subtractedValue &gt; oldValue) {
+        if (_subtractedValue > oldValue) {
             allowance[msg.sender][_spender] = 0;
         } else {
             allowance[msg.sender][_spender] = safeSub(oldValue, _subtractedValue);
@@ -284,7 +284,7 @@ contract Token is SafeMath, Owned, Constants {
     }
 
     function burn(uint _amount) notPaused returns (bool result)  {
-        if (_amount &gt; balanceOf[msg.sender]) return false;
+        if (_amount > balanceOf[msg.sender]) return false;
 
         balanceOf[msg.sender] = safeSub(balanceOf[msg.sender], _amount);
         currentSupply  = safeSub(currentSupply, _amount);
@@ -293,7 +293,7 @@ contract Token is SafeMath, Owned, Constants {
         Transfer(msg.sender, 0, _amount);
     }
 
-    // Peterson&#39;s Law Protection
+    // Peterson's Law Protection
     event logTokenTransfer(address token, address to, uint amount);
 
     function claimTokens(address _token) onlyOwner {
